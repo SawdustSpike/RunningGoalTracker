@@ -1,0 +1,26 @@
+﻿<h2>Status</h2>
+
+<p class="big-status @StatusClass">@PaceStatusText</p>
+
+<p>
+    Difference:
+    <strong>
+        @(ProgressDifference >= 0 ? "+" : "")
+        @ProgressDifference.ToString("0.0")%
+    </strong>
+</p>
+
+<p>Total: <strong>@TotalDistanceText</strong></p>
+<p>Remaining: <strong>@RemainingDistanceText</strong></p>
+<p>Expected Today: <strong>@ExpectedTodayText</strong></p>
+<p>Per Day Needed: <strong>@PerDayNeededText</strong></p>
+
+@code {
+    [Parameter] public string PaceStatusText { get; set; } = "";
+    [Parameter] public decimal ProgressDifference { get; set; }
+    [Parameter] public string TotalDistanceText { get; set; } = "";
+    [Parameter] public string RemainingDistanceText { get; set; } = "";
+    [Parameter] public string ExpectedTodayText { get; set; } = "";
+    [Parameter] public string PerDayNeededText { get; set; } = "";
+    [Parameter] public string StatusClass { get; set; } = "";
+}

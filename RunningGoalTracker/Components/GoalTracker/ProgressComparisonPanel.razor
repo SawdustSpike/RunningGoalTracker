@@ -1,0 +1,35 @@
+﻿<h2>Progress</h2>
+
+<div class="progress-row">
+    <div class="progress-label">
+        <span>Year Progress</span>
+        <strong>@YearProgressPercent.ToString("0.0")%</strong>
+    </div>
+    <div class="visual-progress">
+        <div class="visual-progress-fill year-fill"
+             style="width: @YearProgressWidth"></div>
+    </div>
+</div>
+
+<div class="progress-row">
+    <div class="progress-label">
+        <span>Running Progress</span>
+        <strong class="@StatusClass">@RunningProgressPercent.ToString("0.0")%</strong>
+    </div>
+    <div class="visual-progress">
+        <div class="visual-progress-fill @StatusClass"
+             style="width: @RunningProgressWidth"></div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public decimal YearProgressPercent { get; set; }
+    [Parameter] public decimal RunningProgressPercent { get; set; }
+    [Parameter] public string StatusClass { get; set; } = "";
+
+    private string YearProgressWidth =>
+        $"{Math.Min(YearProgressPercent, 100):0.0}%";
+
+    private string RunningProgressWidth =>
+        $"{Math.Min(RunningProgressPercent, 100):0.0}%";
+}

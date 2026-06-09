@@ -1,0 +1,316 @@
+﻿@page "/goal-tracker"
+@rendermode InteractiveServer
+@using RunningGoalTracker.Components.GoalTracker
+@using RunningGoalTracker.Interfaces
+@using RunningGoalTracker.Models
+@using RunningGoalTracker.Services
+@inject IStravaService StravaService
+@inject GoalProgressService GoalService
+@inject LocalStorageService StorageService
+@inject StravaAuthService StravaAuthService
+@inject NavigationManager Navigation
+@inject StravaApiService StravaApiService
+
+<h1>Running Goal Tracker</h1>
+
+<section class="tracker-card">
+    <GoalSetupPanel UseKilometers="@(distanceUnit == DistanceUnit.Kilometers)"
+                    UseKilometersChanged="@SetDistanceUnit"
+                    DistanceUnitDisplay="@DistanceUnitDisplay"
+                    GoalDistance="@DisplayedGoalDistance"
+                    GoalDistanceChanged="@SetDisplayedGoalDistance"
+                    RecordedDistance="@DisplayedCurrentDistance"
+                    RecordedDistanceChanged="@SetDisplayedCurrentDistance"
+                    ManualDistance="@DisplayedManualDistance"
+                    ManualDistanceChanged="@SetDisplayedManualDistance"
+                    ShowGoalError="@(goal.GoalMiles <= 0)"
+                    IsLoadingStrava="@isLoadingStrava"
+                    LastStravaSync="@lastStravaSync"
+                    OnSyncStravaClicked="@LoadStravaMiles"
+                    OnConnectStravaClicked="@ConnectToStrava"
+                    OnResetClicked="@ResetValues" />
+</section>
+
+<section class="tracker-card">
+    <StatusSummaryPanel PaceStatusText="@PaceStatusText"
+                        StatusClass="@PaceStatusClass"
+                        ProgressDifference="@ProgressDifference"
+                        TotalDistanceText="@FormatDistance(GoalService.GetTotalMiles(goal))"
+                        RemainingDistanceText="@FormatDistance(GoalService.GetMilesRemaining(goal))"
+                        ExpectedTodayText="@FormatDistance(GoalService.GetExpectedMilesToday(goal))"
+                        PerDayNeededText="@FormatDistance(GoalService.GetMilesPerDayNeeded(goal))" />
+</section>
+
+
+<section class="tracker-card">
+    <ProgressComparisonPanel YearProgressPercent="@GoalService.GetYearProgressPercent()"
+                             RunningProgressPercent="@GoalService.GetRunningProgressPercent(goal)"
+                             StatusClass="@PaceStatusClass" />
+</section>
+
+
+<section class="tracker-card">
+    <MonthlyPlanTable MonthlyAllocations="@MonthlyAllocations"
+                      DistanceUnitDisplay="@DistanceUnitDisplay"
+                      AllocationModeText="@AllocationModeText"
+                      RemainingTotalText="@FormatDistance(GoalService.GetMilesRemaining(goal))"
+                      OriginalTotalText="@FormatDistance(MonthlyAllocations.Sum(x => x.OriginalMiles))"
+                      RemainingMonthlyTotalText="@FormatDistance(MonthlyAllocations.Sum(x => x.RemainingMiles))"
+                      FormatDistance="@FormatDistance"
+                      IsRedistributeMode="@(allocationMode == MonthlyAllocationMode.RedistributeRemaining)"
+                      IsRedistributeModeChanged="@SetAllocationMode" />
+</section>
+@code {
+    private bool hasLoadedSettings = false;
+    private bool hasSyncedStravaOnLoad = false;
+    private decimal stravaMiles;
+    private bool isLoadingStrava;
+    private DateTime? lastStravaSync;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !hasLoadedSettings)
+        {
+            hasLoadedSettings = true;
+
+            await LoadSettings();
+
+            StateHasChanged();
+        }
+        if (!hasSyncedStravaOnLoad)
+        {
+            hasSyncedStravaOnLoad = true;
+            await LoadStravaMiles();
+            StateHasChanged();
+        }
+    }
+    private List<MonthlyGoalAllocation> MonthlyAllocations =>
+    GoalService.GetMonthlyAllocations(goal, allocationMode);
+
+    private MonthlyAllocationMode allocationMode =
+        MonthlyAllocationMode.RedistributeRemaining;
+    private async Task SetAllocationMode(bool isRedistributeMode)
+    {
+        allocationMode = isRedistributeMode
+            ? MonthlyAllocationMode.RedistributeRemaining
+            : MonthlyAllocationMode.FillInOrder;
+
+        await SaveSettings();
+    }
+    private DistanceUnit distanceUnit =
+        DistanceUnit.Miles;
+    private RunningGoal goal = new()
+    {
+        GoalMiles = 1000,
+        CurrentMiles = 0,
+        ManualMiles = 0
+    };
+    private decimal ProgressDifference =>
+    GoalService.GetRunningProgressPercent(goal)
+    - GoalService.GetYearProgressPercent();
+
+    private decimal AheadBehindMiles =>
+        GoalService.GetAheadBehindMiles(goal);
+
+    private string PaceStatusText =>
+        AheadBehindMiles switch
+        {
+            > 0 => $"Ahead by {FormatDistance(AheadBehindMiles)}",
+            < 0 => $"Behind by {FormatDistance(Math.Abs(AheadBehindMiles))}",
+            _ => "Exactly on pace"
+        };
+
+    private string UnitLabel =>
+        GoalService.GetUnitLabel(distanceUnit);
+
+    private string DistanceUnitDisplay =>
+        distanceUnit == DistanceUnit.Kilometers
+            ? "Kilometers"
+            : "Miles";
+
+    private decimal DisplayedGoalDistance
+    {
+        get => Math.Round(
+            GoalService.ConvertFromMiles(
+                goal.GoalMiles,
+                distanceUnit), 2);
+
+        set
+        {
+            goal.GoalMiles =
+                GoalService.ConvertToMiles(
+                    value,
+                    distanceUnit);
+
+            _ = SaveSettings();
+        }
+    }
+
+    private decimal DisplayedCurrentDistance
+    {
+        get => Math.Round(GoalService.ConvertFromMiles(goal.CurrentMiles, distanceUnit), 2);
+        set
+        {
+            goal.CurrentMiles = GoalService.ConvertToMiles(value, distanceUnit);
+
+            _ = SaveSettings();
+        }
+    }
+
+    private decimal DisplayedManualDistance
+    {
+        get => Math.Round(GoalService.ConvertFromMiles(goal.ManualMiles, distanceUnit), 2);
+        set
+        {
+            goal.ManualMiles = GoalService.ConvertToMiles(value, distanceUnit);
+            _ = SaveSettings();
+        } 
+    }
+
+    private string FormatDistance(decimal miles)
+    {
+        var convertedDistance =
+            GoalService.ConvertFromMiles(miles, distanceUnit);
+
+        return $"{convertedDistance:0.0} {UnitLabel}";
+    }
+
+    private string AllocationModeText =>
+        allocationMode switch
+        {
+            MonthlyAllocationMode.FillInOrder =>
+                "Fill In Order",
+
+            MonthlyAllocationMode.RedistributeRemaining =>
+                "Redistribute Remaining",
+
+            _ => ""
+        };
+
+    private async Task SaveSettings()
+    {
+        var settings = new GoalTrackerSettings
+        {
+            Goal = goal,
+            DistanceUnit = distanceUnit,
+            AllocationMode = allocationMode
+        };
+
+        await StorageService.SaveAsync(
+            "goalTrackerSettings",
+            settings);
+    }
+
+    private async Task LoadSettings()
+    {
+        var settings =
+            await StorageService.LoadAsync<GoalTrackerSettings>(
+                "goalTrackerSettings");
+
+        if (settings == null)
+            return;
+
+        goal = settings.Goal;
+        distanceUnit = settings.DistanceUnit;
+        allocationMode = settings.AllocationMode;
+    }
+    private async Task ResetValues()
+    {
+        goal = new RunningGoal
+        {
+            GoalMiles = 1000,
+            CurrentMiles = 0,
+            ManualMiles = 0
+        };
+
+        distanceUnit = DistanceUnit.Miles;
+        allocationMode = MonthlyAllocationMode.RedistributeRemaining;
+
+        await SaveSettings();
+    }
+    private string PaceStatusClass =>
+    AheadBehindMiles switch
+    {
+        > 0 => "status-ahead",
+        < 0 => "status-behind",
+        _ => "status-on-pace"
+    };
+    private async Task LoadStravaMiles()
+    {
+        isLoadingStrava = true;
+
+        try
+        {
+            goal.CurrentMiles =
+                await StravaService.GetYearToDateMilesAsync();
+            lastStravaSync = DateTime.Now;
+
+            await SaveSettings();
+        }
+        finally
+        {
+            isLoadingStrava = false;
+        }
+    }
+    private void ConnectToStrava()
+    {
+        Navigation.NavigateTo(
+            StravaAuthService.GetAuthorizationUrl(),
+            forceLoad: true);
+    }
+    private int activityCount;
+    private List<StravaActivity> loadedRuns = new();
+
+    private async Task TestStravaActivities()
+    {
+        var token =
+            await StorageService
+            .LoadAsync<StravaTokenResponse>(
+                "stravaToken");
+
+        if (token == null)
+            return;
+
+        var activities =
+            await StravaApiService
+            .GetActivitiesAsync(
+                token.AccessToken);
+
+        if (activities == null)
+            return;
+
+        loadedRuns = activities
+    .Where(a => a.Type == "Run")
+    .ToList();
+        stravaMiles = loadedRuns
+        .Where(a => a.StartDate.Year == DateTime.Now.Year)
+        .Sum(a => (decimal)a.DistanceMeters / 1609.34m);
+        activityCount = loadedRuns.Count;
+    }
+    private async Task SetDistanceUnit(bool useKilometers)
+    {
+        distanceUnit = useKilometers
+            ? DistanceUnit.Kilometers
+            : DistanceUnit.Miles;
+
+        await SaveSettings();
+    }
+
+    private async Task SetDisplayedGoalDistance(decimal value)
+    {
+        DisplayedGoalDistance = value;
+        await SaveSettings();
+    }
+
+    private async Task SetDisplayedCurrentDistance(decimal value)
+    {
+        DisplayedCurrentDistance = value;
+        await SaveSettings();
+    }
+
+    private async Task SetDisplayedManualDistance(decimal value)
+    {
+        DisplayedManualDistance = value;
+        await SaveSettings();
+    }
+}

@@ -1,0 +1,107 @@
+﻿<h2>Setup</h2>
+
+<label>
+    <input type="checkbox"
+           checked="@UseKilometers"
+           @onchange="OnUnitChanged" />
+    Use Kilometers
+</label>
+
+<div>
+    <label>Goal @DistanceUnitDisplay</label>
+    <input type="number"
+           step="0.01"
+           value="@GoalDistance"
+           @onchange="OnGoalDistanceChanged" />
+</div>
+
+@if (ShowGoalError)
+{
+    <p class="error">Goal must be greater than zero.</p>
+}
+
+<div>
+    <label>Recorded @DistanceUnitDisplay</label>
+    <input type="number"
+           step="0.01"
+           value="@RecordedDistance"
+           @onchange="OnRecordedDistanceChanged" />
+</div>
+
+<div>
+    <label>Manual @DistanceUnitDisplay Not Recorded</label>
+    <input type="number"
+           step="0.01"
+           value="@ManualDistance"
+           @onchange="OnManualDistanceChanged" />
+</div>
+
+<button @onclick="OnSyncStravaClicked"
+        disabled="@IsLoadingStrava">
+    @(IsLoadingStrava ? "Syncing Strava..." : "Sync Strava")
+</button>
+
+<button @onclick="OnConnectStravaClicked">
+    Connect to Strava
+</button>
+
+<button @onclick="OnResetClicked">
+    Reset
+</button>
+
+@if (LastStravaSync != null)
+{
+    <p class="muted">Last synced: @LastStravaSync.Value.ToString("g")</p>
+}
+
+@code {
+    [Parameter] public bool UseKilometers { get; set; }
+    [Parameter] public EventCallback<bool> UseKilometersChanged { get; set; }
+
+    [Parameter] public string DistanceUnitDisplay { get; set; } = "";
+
+    [Parameter] public decimal GoalDistance { get; set; }
+    [Parameter] public EventCallback<decimal> GoalDistanceChanged { get; set; }
+
+    [Parameter] public decimal RecordedDistance { get; set; }
+    [Parameter] public EventCallback<decimal> RecordedDistanceChanged { get; set; }
+
+    [Parameter] public decimal ManualDistance { get; set; }
+    [Parameter] public EventCallback<decimal> ManualDistanceChanged { get; set; }
+
+    [Parameter] public bool ShowGoalError { get; set; }
+    [Parameter] public bool IsLoadingStrava { get; set; }
+    [Parameter] public DateTime? LastStravaSync { get; set; }
+
+    [Parameter] public EventCallback OnSyncStravaClicked { get; set; }
+    [Parameter] public EventCallback OnConnectStravaClicked { get; set; }
+    [Parameter] public EventCallback OnResetClicked { get; set; }
+
+    private async Task OnUnitChanged(ChangeEventArgs e)
+    {
+        var isChecked = (bool?)e.Value ?? false;
+        await UseKilometersChanged.InvokeAsync(isChecked);
+    }
+    private async Task OnManualDistanceChanged(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out var value))
+        {
+            await ManualDistanceChanged.InvokeAsync(value);
+        }
+    }
+    private async Task OnGoalDistanceChanged(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out var value))
+        {
+            await GoalDistanceChanged.InvokeAsync(value);
+        }
+    }
+
+    private async Task OnRecordedDistanceChanged(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out var value))
+        {
+            await RecordedDistanceChanged.InvokeAsync(value);
+        }
+    }
+}

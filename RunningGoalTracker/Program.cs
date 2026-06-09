@@ -1,7 +1,16 @@
 using RunningGoalTracker.Components;
+using RunningGoalTracker.Interfaces;
+using RunningGoalTracker.Models;
+using RunningGoalTracker.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddScoped<GoalProgressService>();
+builder.Services.AddScoped<LocalStorageService>();
+builder.Services.AddScoped<IStravaService, StravaService>();
+builder.Services.Configure<StravaSettings>(
+    builder.Configuration.GetSection("Strava"));
+builder.Services.AddScoped<StravaAuthService>();
+builder.Services.AddHttpClient<StravaApiService>();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

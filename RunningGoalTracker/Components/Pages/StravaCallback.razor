@@ -1,0 +1,49 @@
+﻿@page "/strava/callback"
+@rendermode InteractiveServer
+
+@using RunningGoalTracker.Models
+@using RunningGoalTracker.Services
+@inject NavigationManager Navigation
+@inject StravaApiService StravaApiService
+@inject LocalStorageService StorageService
+
+<h1>Connecting to Strava...</h1>
+
+<p>@statusMessage</p>
+
+@code {
+    private string statusMessage = "Processing Strava authorization...";
+    private bool hasProcessedCode = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || hasProcessedCode)
+            return;
+
+        hasProcessedCode = true;
+
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        if (!query.TryGetValue("code", out var code))
+        {
+            statusMessage = "No authorization code was returned from Strava.";
+            StateHasChanged();
+            return;
+        }
+
+        var tokenResponse =
+            await StravaApiService.ExchangeCodeForTokenAsync(code!);
+
+        if (tokenResponse == null)
+        {
+            statusMessage = "Could not exchange Strava code for tokens.";
+            StateHasChanged();
+            return;
+        }
+
+        await StorageService.SaveAsync("stravaToken", tokenResponse);
+
+        Navigation.NavigateTo("/goal-tracker");
+    }
+}

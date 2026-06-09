@@ -1,0 +1,62 @@
+﻿@using RunningGoalTracker.Models
+
+<h2>Monthly Plan</h2>
+
+<label>
+    <input type="checkbox"
+           checked="@IsRedistributeMode"
+           @onchange="OnModeChanged" />
+    Redistribute remaining distance proportionally
+</label>
+
+<p>Mode: <strong>@AllocationModeText</strong></p>
+<p>Remaining Total: <strong>@RemainingTotalText</strong></p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Month</th>
+            <th>%</th>
+            <th>Original @DistanceUnitDisplay</th>
+            <th>Remaining @DistanceUnitDisplay</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var month in MonthlyAllocations)
+        {
+            <tr>
+                <td>@month.MonthName</td>
+                <td>@month.AnnualPercent.ToString("0")%</td>
+                <td>@FormatDistance(month.OriginalMiles)</td>
+                <td>@FormatDistance(month.RemainingMiles)</td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <td><strong>Total</strong></td>
+            <td></td>
+            <td><strong>@OriginalTotalText</strong></td>
+            <td><strong>@RemainingMonthlyTotalText</strong></td>
+        </tr>
+    </tfoot>
+</table>
+
+@code {
+    [Parameter] public List<MonthlyGoalAllocation> MonthlyAllocations { get; set; } = new();
+    [Parameter] public string DistanceUnitDisplay { get; set; } = "";
+    [Parameter] public string AllocationModeText { get; set; } = "";
+    [Parameter] public string RemainingTotalText { get; set; } = "";
+    [Parameter] public string OriginalTotalText { get; set; } = "";
+    [Parameter] public string RemainingMonthlyTotalText { get; set; } = "";
+    [Parameter] public Func<decimal, string> FormatDistance { get; set; } = _ => "";
+
+    [Parameter] public bool IsRedistributeMode { get; set; }
+    [Parameter] public EventCallback<bool> IsRedistributeModeChanged { get; set; }
+
+    private async Task OnModeChanged(ChangeEventArgs e)
+    {
+        var isChecked = (bool?)e.Value ?? false;
+        await IsRedistributeModeChanged.InvokeAsync(isChecked);
+    }
+}
