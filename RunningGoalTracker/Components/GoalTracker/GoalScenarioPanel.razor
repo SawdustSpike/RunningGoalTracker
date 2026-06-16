@@ -1,0 +1,41 @@
+﻿@using RunningGoalTracker.Models
+
+<h2>Strech Goal Scenerios</h2>
+
+<p class="section-subtitle">
+    Compare how your current mileage performs against larger annual goals.
+</p>
+
+<div class="scenario-grid">
+    @foreach (var scenario in GoalScenarios)
+    {
+        <div class="scenario-card">
+            <span>@FormatDistance(scenario.GoalMiles) Goal</span>
+
+            <strong>@scenario.CompletionPercent.ToString("0.0")%</strong>
+
+            <small>
+                @FormatDistance(scenario.MilesRemaining) remaining
+            </small>
+
+            <div class="scenario-detail">
+                <span>Daily Need</span>
+                <strong>@FormatDistance(scenario.MilesPerDayNeeded)</strong>
+            </div>
+
+            <div class="scenario-detail">
+                <span>Projected Finish</span>
+                <strong>
+                    @(scenario.ProjectedFinishDate == null
+                                    ? "N/A"
+                                    : scenario.ProjectedFinishDate.Value.ToString("MMM d"))
+            </strong>
+        </div>
+    </div>
+        }
+</div>
+
+@code {
+    [Parameter] public List<GoalScenario> GoalScenarios { get; set; } = new();
+    [Parameter] public Func<decimal, string> FormatDistance { get; set; } = _ => "";
+}

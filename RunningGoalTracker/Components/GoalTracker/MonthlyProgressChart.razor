@@ -1,0 +1,56 @@
+﻿@using RunningGoalTracker.Models
+
+<h2>Actual vs Expected</h2>
+
+<p class="section-subtitle">
+    Monthly Strava mileage compared against your planned monthly target.
+</p>
+
+<div class="progress-chart">
+    @foreach (var point in ProgressPoints)
+    {
+        var expectedPercent = GoalMiles <= 0
+        ? 0
+        : point.ExpectedMiles / GoalMiles * 100;
+
+        var actualPercent = GoalMiles <= 0
+        ? 0
+        : point.ActualMiles / GoalMiles * 100;
+
+        <div class="progress-chart-row">
+            <div class="progress-chart-month">
+                @point.Month[..3]
+            </div>
+
+            <div class="progress-chart-bars">
+                <div class="chart-track">
+                    <div class="chart-fill chart-expected"
+                         style="width: @expectedPercent.ToString("0.0")%">
+                    </div>
+                </div>
+
+                <div class="chart-track">
+                    <div class="chart-fill chart-actual"
+                         style="width: @actualPercent.ToString("0.0")%">
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-chart-values">
+                <span>Exp @FormatDistance(point.ExpectedMiles)</span>
+                <strong>Act @FormatDistance(point.ActualMiles)</strong>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="chart-legend">
+    <span><i class="legend-expected"></i> Expected</span>
+    <span><i class="legend-actual"></i> Actual</span>
+</div>
+
+@code {
+    [Parameter] public List<MonthlyProgressPoint> ProgressPoints { get; set; } = new();
+    [Parameter] public decimal GoalMiles { get; set; }
+    [Parameter] public Func<decimal, string> FormatDistance { get; set; } = _ => "";
+}

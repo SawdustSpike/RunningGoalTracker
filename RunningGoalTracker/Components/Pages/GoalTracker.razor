@@ -1,316 +1,190 @@
-﻿@page "/goal-tracker"
+﻿@page "/"
+@page "/goal-tracker"
 @rendermode InteractiveServer
+
 @using RunningGoalTracker.Components.GoalTracker
-@using RunningGoalTracker.Interfaces
 @using RunningGoalTracker.Models
-@using RunningGoalTracker.Services
-@inject IStravaService StravaService
-@inject GoalProgressService GoalService
-@inject LocalStorageService StorageService
-@inject StravaAuthService StravaAuthService
-@inject NavigationManager Navigation
-@inject StravaApiService StravaApiService
+@using RunningGoalTracker.Models.enums
+<div class="dashboard-page @ThemeClass">
+    <header class="dashboard-hero">
+        <div>
+            <p class="eyebrow">Strava-powered annual goal tracker</p>
+            <h1>StrideIQ</h1>
+            <p class="hero-subtitle">
+                Track year progress, running progress, adaptive monthly targets, and Strava-synced mileage.
+            </p>
+        </div>
+        <div class="hero-status @PaceStatusClass">
+            <span>@PaceStatusText</span>
+            <strong>
+                @(ProgressDifference >= 0 ? "+" : "")
+                @ProgressDifference.ToString("0.0")%
+            </strong>
+        </div>
+        <div class="connection-pill">
+            <span class="connection-dot"></span>
+            @StravaSyncText
+        </div>
+        <button class="theme-toggle"
+                @onclick="ToggleTheme">
+            @(!IsDarkMode ? "☀️ Light Mode" : "🌙 Dark Mode")
+        </button>
+    </header>
+    <section class="metric-grid">
 
-<h1>Running Goal Tracker</h1>
+        <div class="metric-card metric-card-blue">
+            <span>🏃 Total Mileage</span>
+            <strong>@FormatDistance(GoalService.GetTotalMiles(goal))</strong>
+        </div>
 
-<section class="tracker-card">
-    <GoalSetupPanel UseKilometers="@(distanceUnit == DistanceUnit.Kilometers)"
-                    UseKilometersChanged="@SetDistanceUnit"
-                    DistanceUnitDisplay="@DistanceUnitDisplay"
-                    GoalDistance="@DisplayedGoalDistance"
-                    GoalDistanceChanged="@SetDisplayedGoalDistance"
-                    RecordedDistance="@DisplayedCurrentDistance"
-                    RecordedDistanceChanged="@SetDisplayedCurrentDistance"
-                    ManualDistance="@DisplayedManualDistance"
-                    ManualDistanceChanged="@SetDisplayedManualDistance"
-                    ShowGoalError="@(goal.GoalMiles <= 0)"
-                    IsLoadingStrava="@isLoadingStrava"
-                    LastStravaSync="@lastStravaSync"
-                    OnSyncStravaClicked="@LoadStravaMiles"
-                    OnConnectStravaClicked="@ConnectToStrava"
-                    OnResetClicked="@ResetValues" />
-</section>
+        <div class="metric-card metric-card-green">
+            <span>🎯 Remaining</span>
+            <strong>@FormatDistance(GoalService.GetMilesRemaining(goal))</strong>
+        </div>
 
-<section class="tracker-card">
-    <StatusSummaryPanel PaceStatusText="@PaceStatusText"
-                        StatusClass="@PaceStatusClass"
-                        ProgressDifference="@ProgressDifference"
-                        TotalDistanceText="@FormatDistance(GoalService.GetTotalMiles(goal))"
-                        RemainingDistanceText="@FormatDistance(GoalService.GetMilesRemaining(goal))"
-                        ExpectedTodayText="@FormatDistance(GoalService.GetExpectedMilesToday(goal))"
-                        PerDayNeededText="@FormatDistance(GoalService.GetMilesPerDayNeeded(goal))" />
-</section>
+        <div class="metric-card metric-card-purple">
+            <span>📈 Completion</span>
+            <strong>@GoalCompletionPercent.ToString("0.0")%</strong>
+            <small>
+                @GoalService.GetTotalMiles(goal).ToString("0")
+                /
+                @goal.GoalMiles.ToString("0")
+                @UnitLabel
+            </small>
+        </div>
 
+        <div class="metric-card metric-card-amber">
+            <span>📅 Daily Need</span>
+            <strong>@FormatDistance(GoalService.GetMilesPerDayNeeded(goal))</strong>
+        </div>
 
-<section class="tracker-card">
-    <ProgressComparisonPanel YearProgressPercent="@GoalService.GetYearProgressPercent()"
-                             RunningProgressPercent="@GoalService.GetRunningProgressPercent(goal)"
-                             StatusClass="@PaceStatusClass" />
-</section>
+        <div class="metric-card metric-card-teal">
+            <span>🔮 Projected Annual</span>
+            <strong>@FormatDistance(ProjectedAnnualMiles)</strong>
+        </div>
 
+        <div class="metric-card metric-card-pink">
+            <span>🏁 Finish Date</span>
+            <strong>@ProjectedFinishDateText</strong>
+        </div>
 
-<section class="tracker-card">
-    <MonthlyPlanTable MonthlyAllocations="@MonthlyAllocations"
-                      DistanceUnitDisplay="@DistanceUnitDisplay"
-                      AllocationModeText="@AllocationModeText"
-                      RemainingTotalText="@FormatDistance(GoalService.GetMilesRemaining(goal))"
-                      OriginalTotalText="@FormatDistance(MonthlyAllocations.Sum(x => x.OriginalMiles))"
-                      RemainingMonthlyTotalText="@FormatDistance(MonthlyAllocations.Sum(x => x.RemainingMiles))"
-                      FormatDistance="@FormatDistance"
-                      IsRedistributeMode="@(allocationMode == MonthlyAllocationMode.RedistributeRemaining)"
-                      IsRedistributeModeChanged="@SetAllocationMode" />
-</section>
-@code {
-    private bool hasLoadedSettings = false;
-    private bool hasSyncedStravaOnLoad = false;
-    private decimal stravaMiles;
-    private bool isLoadingStrava;
-    private DateTime? lastStravaSync;
+    </section>
+    <section class="forecast-card @ProjectionClass">
+        <div>
+            <p class="eyebrow">Pace Forecast</p>
+            <h2>At your current pace, you are projected to finish with</h2>
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+            <strong class="forecast-number">
+                @FormatDistance(ProjectedAnnualMiles)
+            </strong>
+
+            <p class="forecast-detail">
+                Goal: @FormatDistance(goal.GoalMiles) · @ProjectedGoalDifferenceText
+            </p>
+        </div>
+
+        <div class="forecast-date">
+            <span>Projected Finish</span>
+            <strong>@ProjectedFinishDateText</strong>
+        </div>
+    </section>
+    @if (AchievementBadges.Any())
     {
-        if (firstRender && !hasLoadedSettings)
-        {
-            hasLoadedSettings = true;
-
-            await LoadSettings();
-
-            StateHasChanged();
-        }
-        if (!hasSyncedStravaOnLoad)
-        {
-            hasSyncedStravaOnLoad = true;
-            await LoadStravaMiles();
-            StateHasChanged();
-        }
+        <section class="badge-row">
+            @foreach (var badge in AchievementBadges)
+            {
+                <span class="achievement-badge">@badge</span>
+            }
+        </section>
     }
-    private List<MonthlyGoalAllocation> MonthlyAllocations =>
-    GoalService.GetMonthlyAllocations(goal, allocationMode);
+    <div class="forecast-gauge">
+        <div class="forecast-gauge-label">
+            <span>Projected Goal Achievement</span>
+            <strong>@ProjectedGoalPercent.ToString("0.0")%</strong>
+        </div>
 
-    private MonthlyAllocationMode allocationMode =
-        MonthlyAllocationMode.RedistributeRemaining;
-    private async Task SetAllocationMode(bool isRedistributeMode)
-    {
-        allocationMode = isRedistributeMode
-            ? MonthlyAllocationMode.RedistributeRemaining
-            : MonthlyAllocationMode.FillInOrder;
+        <div class="forecast-gauge-track">
+            <div class="forecast-gauge-fill @ProjectionClass"
+                 style="width: @ProjectedGoalWidth">
+            </div>
+        </div>
+    </div>
+    <section class="dashboard-card dashboard-card-wide">
+        <GoalScenarioPanel GoalScenarios="@GoalScenarios"
+                           FormatDistance="@FormatDistance" />
+    </section>
+    <main class="dashboard-grid">
 
-        await SaveSettings();
-    }
-    private DistanceUnit distanceUnit =
-        DistanceUnit.Miles;
-    private RunningGoal goal = new()
-    {
-        GoalMiles = 1000,
-        CurrentMiles = 0,
-        ManualMiles = 0
-    };
-    private decimal ProgressDifference =>
-    GoalService.GetRunningProgressPercent(goal)
-    - GoalService.GetYearProgressPercent();
+        <section class="dashboard-card">
+            <GoalSetupPanel UseKilometers="@(distanceUnit == DistanceUnit.Kilometers)"
+                            UseKilometersChanged="@SetDistanceUnit"
+                            DistanceUnitDisplay="@DistanceUnitDisplay"
+                            GoalDistance="@DisplayedGoalDistance"
+                            GoalDistanceChanged="@SetDisplayedGoalDistance"
+                            RecordedDistance="@DisplayedCurrentDistance"
+                            RecordedDistanceChanged="@SetDisplayedCurrentDistance"
+                            ManualDistance="@DisplayedManualDistance"
+                            ManualDistanceChanged="@SetDisplayedManualDistance"
+                            ShowGoalError="@(goal.GoalMiles <= 0)"
+                            IsLoadingStrava="@isLoadingStrava"
+                            LastStravaSync="@lastStravaSync"
+                            OnSyncStravaClicked="@LoadStravaMiles"
+                            OnConnectStravaClicked="@ConnectToStrava"
+                            OnResetClicked="@ResetValues" />
+        </section>
 
-    private decimal AheadBehindMiles =>
-        GoalService.GetAheadBehindMiles(goal);
+        <section class="dashboard-card">
+            <StatusSummaryPanel PaceStatusText="@PaceStatusText"
+                                StatusClass="@PaceStatusClass"
+                                ProgressDifference="@ProgressDifference"
+                                TotalDistanceText="@FormatDistance(GoalService.GetTotalMiles(goal))"
+                                RemainingDistanceText="@FormatDistance(GoalService.GetMilesRemaining(goal))"
+                                ExpectedTodayText="@FormatDistance(GoalService.GetExpectedMilesToday(goal))"
+                                PerDayNeededText="@FormatDistance(GoalService.GetMilesPerDayNeeded(goal))" />
+        </section>
 
-    private string PaceStatusText =>
-        AheadBehindMiles switch
-        {
-            > 0 => $"Ahead by {FormatDistance(AheadBehindMiles)}",
-            < 0 => $"Behind by {FormatDistance(Math.Abs(AheadBehindMiles))}",
-            _ => "Exactly on pace"
-        };
 
-    private string UnitLabel =>
-        GoalService.GetUnitLabel(distanceUnit);
+        <section class="dashboard-card">
+            <ProgressComparisonPanel YearProgressPercent="@GoalService.GetYearProgressPercent()"
+                                     RunningProgressPercent="@GoalService.GetRunningProgressPercent(goal)"
+                                     StatusClass="@PaceStatusClass" />
+        </section>
 
-    private string DistanceUnitDisplay =>
-        distanceUnit == DistanceUnit.Kilometers
-            ? "Kilometers"
-            : "Miles";
+        <section class="dashboard-card dashboard-card-wide">
+            <MonthlyProgressChart ProgressPoints="@GoalService.GetMonthlyProgressPoints(goal, monthlyAllocationSettings, monthlyRunTotals)"
+                                  GoalMiles="@goal.GoalMiles"
+                                  FormatDistance="@FormatDistance" />
+        </section>
+        <section class="dashboard-card dashboard-card-wide">
+            <MonthlyPlanTable MonthlyAllocations="@MonthlyAllocations"
+                              DistanceUnitDisplay="@DistanceUnitDisplay"
+                              AllocationModeText="@AllocationModeText"
+                              RemainingTotalText="@FormatDistance(GoalService.GetMilesRemaining(goal))"
+                              OriginalTotalText="@FormatDistance(MonthlyAllocations.Sum(x => x.OriginalMiles))"
+                              RemainingMonthlyTotalText="@FormatDistance(MonthlyAllocations.Sum(x => x.RemainingMiles))"
+                              FormatDistance="@FormatDistance"
+                              IsRedistributeMode="@(allocationMode == MonthlyAllocationMode.RedistributeRemaining)"
+                              IsRedistributeModeChanged="@SetAllocationMode" />
+        </section>
+        <details class="advanced-settings">
+            <summary>Advanced Settings</summary>
 
-    private decimal DisplayedGoalDistance
-    {
-        get => Math.Round(
-            GoalService.ConvertFromMiles(
-                goal.GoalMiles,
-                distanceUnit), 2);
+            <MonthlyAllocationEditor MonthlySettings="@monthlyAllocationSettings"
+                                     MonthlySettingsChanged="@SetMonthlyAllocationSettings" />
+        </details>
+    </main>
+    <footer class="dashboard-footer">
+        <span>StrideIQ v1.0 </span>
+        <span> Built with Blazor • .NET 9 • Strava API</span>
 
-        set
-        {
-            goal.GoalMiles =
-                GoalService.ConvertToMiles(
-                    value,
-                    distanceUnit);
+        <span>
+            OAuth • Token Refresh • Local Persistence • Adaptive Goal Forecasting
+        </span>
 
-            _ = SaveSettings();
-        }
-    }
-
-    private decimal DisplayedCurrentDistance
-    {
-        get => Math.Round(GoalService.ConvertFromMiles(goal.CurrentMiles, distanceUnit), 2);
-        set
-        {
-            goal.CurrentMiles = GoalService.ConvertToMiles(value, distanceUnit);
-
-            _ = SaveSettings();
-        }
-    }
-
-    private decimal DisplayedManualDistance
-    {
-        get => Math.Round(GoalService.ConvertFromMiles(goal.ManualMiles, distanceUnit), 2);
-        set
-        {
-            goal.ManualMiles = GoalService.ConvertToMiles(value, distanceUnit);
-            _ = SaveSettings();
-        } 
-    }
-
-    private string FormatDistance(decimal miles)
-    {
-        var convertedDistance =
-            GoalService.ConvertFromMiles(miles, distanceUnit);
-
-        return $"{convertedDistance:0.0} {UnitLabel}";
-    }
-
-    private string AllocationModeText =>
-        allocationMode switch
-        {
-            MonthlyAllocationMode.FillInOrder =>
-                "Fill In Order",
-
-            MonthlyAllocationMode.RedistributeRemaining =>
-                "Redistribute Remaining",
-
-            _ => ""
-        };
-
-    private async Task SaveSettings()
-    {
-        var settings = new GoalTrackerSettings
-        {
-            Goal = goal,
-            DistanceUnit = distanceUnit,
-            AllocationMode = allocationMode
-        };
-
-        await StorageService.SaveAsync(
-            "goalTrackerSettings",
-            settings);
-    }
-
-    private async Task LoadSettings()
-    {
-        var settings =
-            await StorageService.LoadAsync<GoalTrackerSettings>(
-                "goalTrackerSettings");
-
-        if (settings == null)
-            return;
-
-        goal = settings.Goal;
-        distanceUnit = settings.DistanceUnit;
-        allocationMode = settings.AllocationMode;
-    }
-    private async Task ResetValues()
-    {
-        goal = new RunningGoal
-        {
-            GoalMiles = 1000,
-            CurrentMiles = 0,
-            ManualMiles = 0
-        };
-
-        distanceUnit = DistanceUnit.Miles;
-        allocationMode = MonthlyAllocationMode.RedistributeRemaining;
-
-        await SaveSettings();
-    }
-    private string PaceStatusClass =>
-    AheadBehindMiles switch
-    {
-        > 0 => "status-ahead",
-        < 0 => "status-behind",
-        _ => "status-on-pace"
-    };
-    private async Task LoadStravaMiles()
-    {
-        isLoadingStrava = true;
-
-        try
-        {
-            goal.CurrentMiles =
-                await StravaService.GetYearToDateMilesAsync();
-            lastStravaSync = DateTime.Now;
-
-            await SaveSettings();
-        }
-        finally
-        {
-            isLoadingStrava = false;
-        }
-    }
-    private void ConnectToStrava()
-    {
-        Navigation.NavigateTo(
-            StravaAuthService.GetAuthorizationUrl(),
-            forceLoad: true);
-    }
-    private int activityCount;
-    private List<StravaActivity> loadedRuns = new();
-
-    private async Task TestStravaActivities()
-    {
-        var token =
-            await StorageService
-            .LoadAsync<StravaTokenResponse>(
-                "stravaToken");
-
-        if (token == null)
-            return;
-
-        var activities =
-            await StravaApiService
-            .GetActivitiesAsync(
-                token.AccessToken);
-
-        if (activities == null)
-            return;
-
-        loadedRuns = activities
-    .Where(a => a.Type == "Run")
-    .ToList();
-        stravaMiles = loadedRuns
-        .Where(a => a.StartDate.Year == DateTime.Now.Year)
-        .Sum(a => (decimal)a.DistanceMeters / 1609.34m);
-        activityCount = loadedRuns.Count;
-    }
-    private async Task SetDistanceUnit(bool useKilometers)
-    {
-        distanceUnit = useKilometers
-            ? DistanceUnit.Kilometers
-            : DistanceUnit.Miles;
-
-        await SaveSettings();
-    }
-
-    private async Task SetDisplayedGoalDistance(decimal value)
-    {
-        DisplayedGoalDistance = value;
-        await SaveSettings();
-    }
-
-    private async Task SetDisplayedCurrentDistance(decimal value)
-    {
-        DisplayedCurrentDistance = value;
-        await SaveSettings();
-    }
-
-    private async Task SetDisplayedManualDistance(decimal value)
-    {
-        DisplayedManualDistance = value;
-        await SaveSettings();
-    }
-}
+        <a href="https://github.com/SawdustSpike/RunningGoalTracker"
+           target="_blank"
+           rel="noopener noreferrer">
+            View Source →
+        </a>
+    </footer>
+</div>

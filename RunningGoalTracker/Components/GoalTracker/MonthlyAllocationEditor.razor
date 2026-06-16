@@ -1,0 +1,73 @@
+﻿@using RunningGoalTracker.Models
+
+<h2>Monthly Allocation Settings</h2>
+
+<p class="section-subtitle">
+    Adjust how your annual goal is distributed across the year. Total should equal 100%.
+</p>
+
+<div class="allocation-editor-header">
+    <span>Total Allocation</span>
+    <strong class="@TotalClass">@TotalPercent.ToString("0.0")%</strong>
+</div>
+
+<div class="allocation-editor-grid">
+    @foreach (var setting in MonthlySettings.OrderBy(x => x.MonthNumber))
+    {
+        <div class="allocation-editor-row">
+            <label>@GetMonthName(setting.MonthNumber)</label>
+
+            <input type="number"
+                   step="0.1"
+                   value="@setting.Percent"
+                   @onchange="e => OnPercentChanged(setting.MonthNumber, e)" />
+
+            <span>%</span>
+        </div>
+    }
+</div>
+
+@if (TotalPercent != 100)
+{
+    <p class="error">
+        Monthly allocations currently total @TotalPercent.ToString("0.0")%.
+        They should total 100%.
+    </p>
+}
+
+@code {
+    [Parameter] public List<MonthlyAllocationSetting> MonthlySettings { get; set; } = new();
+    [Parameter] public EventCallback<List<MonthlyAllocationSetting>> MonthlySettingsChanged { get; set; }
+
+    private decimal TotalPercent =>
+        MonthlySettings.Sum(x => x.Percent);
+
+    private string TotalClass =>
+        TotalPercent == 100
+            ? "status-ahead"
+            : "status-behind";
+
+    private string GetMonthName(int monthNumber)
+    {
+        return new DateTime(DateTime.Today.Year, monthNumber, 1)
+            .ToString("MMMM");
+    }
+
+    private async Task OnPercentChanged(
+        int monthNumber,
+        ChangeEventArgs e)
+    {
+        if (!decimal.TryParse(e.Value?.ToString(), out var value))
+            return;
+
+        var setting =
+            MonthlySettings.FirstOrDefault(x => x.MonthNumber == monthNumber);
+
+        if (setting == null)
+            return;
+
+        setting.Percent = value;
+
+        await MonthlySettingsChanged.InvokeAsync(MonthlySettings);
+    }
+}

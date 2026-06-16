@@ -1,18 +1,18 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<div class="app-shell">
+    <header class="app-header">
+        <div class="app-brand">
+            <span class="brand-mark">RG</span>
+            <div>
+                <strong>StrideIQ</strong>
+                <small>Strava-powered progress dashboard</small>
+            </div>
+        </div>
+    </header>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
+        @Body
     </main>
 </div>
 

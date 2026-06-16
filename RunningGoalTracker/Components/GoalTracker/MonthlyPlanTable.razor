@@ -1,43 +1,94 @@
 ﻿@using RunningGoalTracker.Models
 
-<h2>Monthly Plan</h2>
+<h2>Monthly Target Breakdown</h2>
+
+<p class="section-subtitle">
+    Remaining distance is distributed according to your selected monthly strategy.
+</p>
 
 <label>
     <input type="checkbox"
            checked="@IsRedistributeMode"
            @onchange="OnModeChanged" />
-    Redistribute remaining distance proportionally
+    Smart Goal Redistribution
 </label>
 
-<p>Mode: <strong>@AllocationModeText</strong></p>
-<p>Remaining Total: <strong>@RemainingTotalText</strong></p>
+<div class="monthly-summary-row">
+    <div>
+        <span>Mode</span>
+        <strong>@AllocationModeText</strong>
+    </div>
+
+    <div>
+        <span>Remaining Total</span>
+        <strong>@RemainingTotalText</strong>
+    </div>
+</div>
 
 <table>
     <thead>
         <tr>
-            <th>Month</th>
-            <th>%</th>
-            <th>Original @DistanceUnitDisplay</th>
-            <th>Remaining @DistanceUnitDisplay</th>
+            <th>Monthly Allocation</th>
         </tr>
     </thead>
+
     <tbody>
         @foreach (var month in MonthlyAllocations)
         {
+            var maxRemaining = MonthlyAllocations.Max(x => x.RemainingMiles);
+            var remainingPercent = maxRemaining <= 0
+            ? 0
+            : month.RemainingMiles / maxRemaining * 100;
+
             <tr>
-                <td>@month.MonthName</td>
-                <td>@month.AnnualPercent.ToString("0")%</td>
-                <td>@FormatDistance(month.OriginalMiles)</td>
-                <td>@FormatDistance(month.RemainingMiles)</td>
+                <td>
+                    <div class="month-plan-row">
+                        <div class="month-plan-name">
+                            <strong>@month.MonthName</strong>
+                            <span>@month.AnnualPercent.ToString("0")% annual weight</span>
+                        </div>
+
+                        <div class="month-plan-target">
+                            <span>Original</span>
+                            <strong>@FormatDistance(month.OriginalMiles)</strong>
+                        </div>
+
+                        <div class="month-plan-remaining">
+                            <span>Remaining</span>
+                            <strong>@FormatDistance(month.RemainingMiles)</strong>
+
+                            <div class="mini-bar">
+                                <div class="mini-bar-fill"
+                                     style="width: @remainingPercent.ToString("0.0")%">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
             </tr>
         }
     </tbody>
+
     <tfoot>
         <tr>
-            <td><strong>Total</strong></td>
-            <td></td>
-            <td><strong>@OriginalTotalText</strong></td>
-            <td><strong>@RemainingMonthlyTotalText</strong></td>
+            <td>
+                <div class="month-plan-row month-plan-total">
+                    <div class="month-plan-name">
+                        <strong>Total</strong>
+                        <span>Annual goal summary</span>
+                    </div>
+
+                    <div class="month-plan-target">
+                        <span>Original</span>
+                        <strong>@OriginalTotalText</strong>
+                    </div>
+
+                    <div class="month-plan-remaining">
+                        <span>Remaining</span>
+                        <strong>@RemainingMonthlyTotalText</strong>
+                    </div>
+                </div>
+            </td>
         </tr>
     </tfoot>
 </table>

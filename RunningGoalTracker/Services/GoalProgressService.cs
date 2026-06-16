@@ -1,5 +1,6 @@
 ﻿
 using RunningGoalTracker.Models;
+using RunningGoalTracker.Models.enums;
 namespace RunningGoalTracker.Services
 {
     public class GoalProgressService
@@ -21,12 +22,92 @@ namespace RunningGoalTracker.Services
             if (goal.GoalMiles <= 0) return 0;
             return GetTotalMiles(goal) / goal.GoalMiles * 100;
         }
+        public decimal GetProjectedAnnualMiles(RunningGoal goal)
+        {
+            var yearProgressPercent = GetYearProgressPercent();
 
+            if (yearProgressPercent <= 0)
+                return 0;
+
+            return GetTotalMiles(goal) / (yearProgressPercent / 100);
+        }
         public decimal GetTotalMiles(RunningGoal goal)
         {
             return goal.CurrentMiles + goal.ManualMiles;
         }
+        public DateTime? GetProjectedFinishDate(RunningGoal goal)
+        {
+            var totalMiles = GetTotalMiles(goal);
 
+            if (totalMiles <= 0 || goal.GoalMiles <= 0)
+                return null;
+
+            var dayOfYear = DateTime.Today.DayOfYear;
+
+            var averageMilesPerDay =
+                totalMiles / dayOfYear;
+
+            if (averageMilesPerDay <= 0)
+                return null;
+
+            var daysNeeded =
+                Math.Ceiling(goal.GoalMiles / averageMilesPerDay);
+
+            return new DateTime(DateTime.Today.Year, 1, 1)
+                .AddDays((double)daysNeeded - 1);
+        }
+        public GoalScenario GetGoalScenario(
+    RunningGoal currentGoal,
+    decimal scenarioGoalMiles)
+        {
+            var scenarioGoal = new RunningGoal
+            {
+                GoalMiles = scenarioGoalMiles,
+                CurrentMiles = currentGoal.CurrentMiles,
+                ManualMiles = currentGoal.ManualMiles
+            };
+
+            return new GoalScenario
+            {
+                GoalMiles = scenarioGoalMiles,
+                CompletionPercent = GetRunningProgressPercent(scenarioGoal),
+                MilesRemaining = GetMilesRemaining(scenarioGoal),
+                MilesPerDayNeeded = GetMilesPerDayNeeded(scenarioGoal),
+                ProjectedAnnualMiles = GetProjectedAnnualMiles(scenarioGoal),
+                ProjectedFinishDate = GetProjectedFinishDate(scenarioGoal)
+            };
+        }
+        public List<MonthlyProgressPoint> GetMonthlyProgressPoints(
+     RunningGoal goal,
+     List<MonthlyAllocationSetting> monthlySettings,
+     List<MonthlyRunTotal> monthlyRunTotals)
+        {
+            var expectedByMonth = monthlySettings
+                .ToDictionary(
+                    x => x.MonthNumber,
+                    x => goal.GoalMiles * (x.Percent / 100));
+
+            var actualByMonth = monthlyRunTotals
+                .ToDictionary(
+                    x => x.MonthNumber,
+                    x => x.Miles);
+
+            return Enumerable.Range(1, 12)
+                .Select(monthNumber => new MonthlyProgressPoint
+                {
+                    Month = new DateTime(DateTime.Today.Year, monthNumber, 1)
+                        .ToString("MMMM"),
+
+                    ExpectedMiles = expectedByMonth.TryGetValue(monthNumber, out var expected)
+                        ? expected
+                        : 0,
+
+                    ActualMiles = actualByMonth.TryGetValue(monthNumber, out var actual)
+                        ? actual
+                        : 0
+                })
+                .ToList();
+        }
         public decimal GetMilesRemaining(RunningGoal goal)
         {
             return Math.Max(0, goal.GoalMiles - GetTotalMiles(goal));
@@ -55,39 +136,28 @@ namespace RunningGoalTracker.Services
 
         }
         public List<MonthlyGoalAllocation> GetMonthlyAllocations(
-    RunningGoal goal,
-    MonthlyAllocationMode mode)
+     RunningGoal goal,
+     MonthlyAllocationMode mode,
+     List<MonthlyAllocationSetting> monthlySettings)
         {
-            var monthlyPercents = new Dictionary<int, decimal>
-    {
-        { 1, 5 },
-        { 2, 6 },
-        { 3, 9 },
-        { 4, 10 },
-        { 5, 11 },
-        { 6, 8 },
-        { 7, 7 },
-        { 8, 7 },
-        { 9, 10 },
-        { 10, 11 },
-        { 11, 9 },
-        { 12, 7 }
-    };
+            var monthlyPercents = monthlySettings
+    .ToDictionary(x => x.MonthNumber, x => x.Percent);
 
             var today = DateTime.Today;
             var totalMilesRun = GetTotalMiles(goal);
             var remainingMiles = Math.Max(goal.GoalMiles - totalMilesRun, 0);
 
             var allocations = monthlyPercents
-                .Select(x => new MonthlyGoalAllocation
-                {
-                    MonthNumber = x.Key,
-                    MonthName = new DateTime(today.Year, x.Key, 1).ToString("MMMM"),
-                    AnnualPercent = x.Value,
-                    OriginalMiles = goal.GoalMiles * (x.Value / 100),
-                    RemainingMiles = 0
-                })
-                .ToList();
+    .Select(x => new MonthlyGoalAllocation
+    {
+        MonthNumber = x.Key,
+        MonthName = new DateTime(today.Year, x.Key, 1).ToString("MMMM"),
+        AnnualPercent = x.Value,
+        OriginalMiles = goal.GoalMiles * (x.Value / 100),
+        RemainingMiles = 0
+    })
+    .OrderBy(x => x.MonthNumber)
+    .ToList();
 
             if (remainingMiles <= 0)
                 return allocations;
