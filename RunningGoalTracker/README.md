@@ -1,4 +1,4 @@
-# Running Goal Tracker
+# StrideIQ
 
 A modern running analytics dashboard built with Blazor and .NET 9 that helps runners track annual mileage goals, compare actual progress against planned targets, and forecast year-end performance using real Strava activity data.
 
@@ -63,19 +63,48 @@ The application is built using a service-oriented architecture:
 * GoalScenarioPanel
 * MonthlyAllocationEditor
 
+---
 ## Screenshots
 
-### Dashboard
+## Dashboard (Dark Mode)
 
-(Add screenshot)
+![Dark Mode Dashboard](wwwroot/StrideIQPictures/Dark%20Mode%20Dash.png)
 
-### Dark Mode
+---
 
-(Add screenshot)
+## Dashboard (Light Mode)
 
-### Monthly Analytics
+![Light Mode Dashboard](wwwroot/StrideIQPictures/Light%20Mode%20Dash.png)
 
-(Add screenshot)
+---
+
+## Monthly Analytics
+
+![Monthly Analytics](wwwroot/StrideIQPictures/Monthly%20Analytics.png)
+
+---
+
+## Stretch Goal Planning
+
+![Stretch Goals](wwwroot/StrideIQPictures/Stretch%20Goals.png)
+
+---
+
+## Architecture
+
+### Components
+
+![Components](wwwroot/StrideIQPictures/Components.png)
+
+### Goal Progress Service
+
+![Goal Progress Service](wwwroot/StrideIQPictures/Goal%20Progress%20Service.png)
+
+### Strava Service
+
+![Strava Service](wwwroot/StrideIQPictures/StravaService.png)
+
+---
 
 ## Future Enhancements
 
