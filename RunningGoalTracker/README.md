@@ -68,25 +68,25 @@ The application is built using a service-oriented architecture:
 
 ## Dashboard (Dark Mode)
 
-![Dark Mode Dashboard](wwwroot/StrideIQPictures/Dark%20Mode%20Dash.png)
+![Dark Mode Dashboard](docs/images/Dark%20Mode%20Dash.png)
 
 ---
 
 ## Dashboard (Light Mode)
 
-![Light Mode Dashboard](wwwroot/StrideIQPictures/Light%20Mode%20Dash.png)
+![Light Mode Dashboard](docs/images/Light%20Mode%20Dash.png)
 
 ---
 
 ## Monthly Analytics
 
-![Monthly Analytics](wwwroot/StrideIQPictures/Monthly%20Analytics.png)
+![Monthly Analytics](docs/images/Monthly%20Analytics.png)
 
 ---
 
 ## Stretch Goal Planning
 
-![Stretch Goals](wwwroot/StrideIQPictures/Stretch%20Goals.png)
+![Stretch Goals](docs/images/Stretch%20Goals.png)
 
 ---
 
@@ -94,15 +94,15 @@ The application is built using a service-oriented architecture:
 
 ### Components
 
-![Components](wwwroot/StrideIQPictures/Components.png)
+![Components](docs/images/Components.png)
 
 ### Goal Progress Service
 
-![Goal Progress Service](wwwroot/StrideIQPictures/Goal%20Progress%20Service.png)
+![Goal Progress Service](docs/images/Goal%20Progress%20Service.png)
 
 ### Strava Service
 
-![Strava Service](wwwroot/StrideIQPictures/StravaService.png)
+![Strava Service](docs/images/StravaService.png)
 
 ---
 

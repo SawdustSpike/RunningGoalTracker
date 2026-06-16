@@ -7,4 +7,14 @@
     <UserSecretsId>58426cd5-5489-4e65-874b-4382649d942a</UserSecretsId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Include="docs\images\Components.png" />
+    <Content Include="docs\images\Dark Mode Dash.png" />
+    <Content Include="docs\images\Goal Progress Service.png" />
+    <Content Include="docs\images\Light Mode Dash.png" />
+    <Content Include="docs\images\Monthly Analytics.png" />
+    <Content Include="docs\images\StravaService.png" />
+    <Content Include="docs\images\Stretch Goals.png" />
+  </ItemGroup>
+
 </Project>
