@@ -68,25 +68,25 @@ The application is built using a service-oriented architecture:
 
 ## Dashboard (Dark Mode)
 
-![Dark Mode Dashboard](docs/images/Dark%20Mode%20Dash.png)
+![Dark Mode Dashboard](RunningGoalTracker/docs/images/Dark%20Mode%20Dash.png)
 
 ---
 
 ## Dashboard (Light Mode)
 
-![Light Mode Dashboard](docs/images/Light%20Mode%20Dash.png)
+![Light Mode Dashboard](RunningGoalTracker/docs/images/Light%20Mode%20Dash.png)
 
 ---
 
 ## Monthly Analytics
 
-![Monthly Analytics](docs/images/Monthly%20Analytics.png)
+![Monthly Analytics](RunningGoalTracker/docs/images/Monthly%20Analytics.png)
 
 ---
 
 ## Stretch Goal Planning
 
-![Stretch Goals](docs/images/Stretch%20Goals.png)
+![Stretch Goals](RunningGoalTracker/docs/images/Stretch%20Goals.png)
 
 ---
 
@@ -94,15 +94,15 @@ The application is built using a service-oriented architecture:
 
 ### Components
 
-![Components](docs/images/Components.png)
+![Components](RunningGoalTracker/docs/images/Components.png)
 
 ### Goal Progress Service
 
-![Goal Progress Service](docs/images/Goal%20Progress%20Service.png)
+![Goal Progress Service](RunningGoalTracker/docs/images/Goal%20Progress%20Service.png)
 
 ### Strava Service
 
-![Strava Service](docs/images/StravaService.png)
+![Strava Service](RunningGoalTracker/docs/images/StravaService.png)
 
 ---
 
