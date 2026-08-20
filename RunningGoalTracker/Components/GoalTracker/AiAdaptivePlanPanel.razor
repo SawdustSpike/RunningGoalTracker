@@ -1,0 +1,332 @@
+﻿@using RunningGoalTracker.Models
+<div class="ai-plan">
+
+    <div class="ai-plan-header">
+        <div>
+            <p class="ai-eyebrow">AI-powered planning</p>
+            <h2>AI Adaptive Plan</h2>
+
+            <p class="section-subtitle">
+                Generate a personalized remaining-mileage plan based on
+                your progress, location, and time remaining this year.
+            </p>
+        </div>
+
+        <span class="claude-badge">
+            ✦ Powered by Claude
+        </span>
+    </div>
+
+    <div class="ai-section">
+        <div class="ai-section-header">
+            <span>Claude Connection</span>
+
+            @if (IsClaudeConnected)
+            {
+                <span class="claude-status connected">
+                    <span class="connection-dot"></span>
+                    Connected
+                </span>
+            }
+            else
+            {
+                <span class="claude-status">
+                    Not connected
+                </span>
+            }
+        </div>
+
+        @if (!IsClaudeConnected)
+        {
+            <div class="claude-connect-options">
+
+                @if (HasConfiguredClaudeKey)
+                {
+                    <div class="configured-key-option">
+                        <div>
+                            <strong>Configured API Key</strong>
+                            <small>
+                                Use the key configured securely for this installation.
+                            </small>
+                        </div>
+
+                        <button @onclick="OnUseConfiguredKeyClicked">
+                            Use Configured Key
+                        </button>
+                    </div>
+
+                    <div class="connection-divider">
+                        <span>or bring your own key</span>
+                    </div>
+                }
+
+                <div class="byok-option">
+                    <label>Anthropic API Key</label>
+
+                    <div class="api-key-row">
+                        <input type="password"
+                               value="@ApiKey"
+                               @oninput="OnApiKeyInput"
+                               placeholder="sk-ant-..." />
+
+                        <button @onclick="OnConnectClaudeClicked"
+                                disabled="@string.IsNullOrWhiteSpace(ApiKey)">
+                            Connect
+                        </button>
+                    </div>
+
+                    <small>
+                        Your key is held only for this session and is not persisted.
+                    </small>
+                </div>
+
+            </div>
+        }
+        else
+        {
+            <div class="connected-summary">
+                <div>
+                    <strong>Claude is ready</strong>
+                    <small>
+                        Your credentials are available for AI plan generation.
+                    </small>
+                </div>
+
+                <button class="secondary-button"
+                        @onclick="OnDisconnectClaudeClicked">
+                    Disconnect
+                </button>
+            </div>
+        }
+    </div>
+
+    <div class="ai-section plan-generator">
+        <div class="ai-section-header">
+            <span>Plan Your Remaining Year</span>
+        </div>
+
+        <div class="location-field">
+            <label>Running Location</label>
+
+            <input type="text"
+                   value="@Location"
+                   @oninput="OnLocationInput"
+                   placeholder="e.g. Westerville, OH or 43081" />
+
+            <small>
+                Claude uses your region to account for seasonal running conditions.
+            </small>
+        </div>
+
+        <div class="ai-context-grid">
+
+            <div class="ai-context-item">
+                <span>Annual Goal</span>
+                <strong>@AnnualGoalText</strong>
+            </div>
+
+            <div class="ai-context-item">
+                <span>Completed</span>
+                <strong>@CompletedText</strong>
+            </div>
+
+            <div class="ai-context-item">
+                <span>Remaining</span>
+                <strong>@RemainingText</strong>
+            </div>
+
+            <div class="ai-context-item">
+                <span>Today</span>
+                <strong>@CurrentDateText</strong>
+            </div>
+
+        </div>
+
+        <button class="generate-plan-button"
+                @onclick="OnGenerateClicked"
+                disabled="@(!IsClaudeConnected ||
+                                IsGenerating ||
+                                string.IsNullOrWhiteSpace(Location))">
+
+            @if (IsGenerating)
+            {
+                <span class="ai-spinner"></span>
+                <span>Claude is building your plan...</span>
+            }
+            else
+            {
+                <span>✦ Generate Adaptive Plan</span>
+            }
+        </button>
+    </div>
+
+</div>
+
+@if (!string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    <div class="ai-message ai-message-error">
+        <strong>Unable to generate plan</strong>
+        <span>@ErrorMessage</span>
+    </div>
+}
+@if (!string.IsNullOrWhiteSpace(SuccessMessage))
+{
+    <div class="ai-message ai-message-success">
+        <div class="ai-success-icon">✓</div>
+
+        <div>
+            <strong>Plan Updated</strong>
+            <span>@SuccessMessage</span>
+        </div>
+    </div>
+}
+@if (Recommendation != null)
+{
+    <div class="ai-recommendation">
+
+        <div class="recommendation-header">
+            <div>
+                <p class="ai-eyebrow">Claude's Recommendation</p>
+                <h3>Proposed Adaptive Plan</h3>
+            </div>
+
+            <span class="recommendation-ready">
+                ✓ Ready to Review
+            </span>
+        </div>
+
+        <div class="recommendation-summary">
+            <div class="recommendation-region">
+                <span>Running Region</span>
+                <strong>@Recommendation.RegionDescription</strong>
+            </div>
+
+            <div class="recommendation-remaining">
+                <span>Miles Being Allocated</span>
+                <strong>@Recommendation.RemainingMiles.ToString("0.0") mi</strong>
+            </div>
+        </div>
+
+        <div class="recommendation-reasoning">
+            <div class="reasoning-icon">✦</div>
+
+            <div>
+                <span>Why Claude recommends this plan</span>
+                <p>@Recommendation.ReasoningSummary</p>
+            </div>
+        </div>
+
+        <div class="recommendation-months">
+
+            <div class="recommendation-months-header">
+                <span>Month</span>
+                <span>Recommended</span>
+                <span>% Remaining</span>
+            </div>
+
+            @foreach (var month in Recommendation.Allocations
+                .Where(x => x.TargetMiles > 0))
+            {
+                <div class="recommendation-month-row">
+                    <div class="recommendation-month-name">
+                        <strong>@month.MonthName</strong>
+
+                        @if (month.MonthNumber == DateTime.Today.Month)
+                        {
+                            <small class="current-month-pill">
+                                Current Month
+                            </small>
+                        }
+                    </div>
+
+                    <strong class="recommended-miles">
+                        @month.TargetMiles.ToString("0.0") mi
+                    </strong>
+
+                    <div class="recommendation-percent">
+                        <span>
+                            @month.PercentOfRemaining.ToString("0.0")%
+                        </span>
+
+                        <div class="recommendation-bar">
+                            <div class="recommendation-bar-fill"
+                                 style="width: @month.PercentOfRemaining.ToString("0.0")%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+
+        <div class="recommendation-total">
+            <span>Total Recommended</span>
+
+            <strong>
+                @(Recommendation.Allocations
+                    .Sum(x => x.TargetMiles)
+                    .ToString("0.0")) mi
+            </strong>
+        </div>
+
+        <div class="recommendation-actions">
+            <button class="apply-ai-plan-button"
+                    @onclick="OnApplyClicked">
+                ✓ Apply AI Plan
+            </button>
+
+            <button class="secondary-button"
+                    @onclick="OnDiscardClicked">
+                Discard
+            </button>
+        </div>
+
+        <p class="recommendation-disclaimer">
+            Review the recommendation before applying it.
+            AI-generated plans may not account for every individual training factor.
+        </p>
+
+    </div>
+}
+
+@code {
+    [Parameter] public string Location { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> LocationChanged { get; set; }
+
+    [Parameter] public bool IsGenerating { get; set; }
+    [Parameter] public string? ErrorMessage { get; set; }
+    [Parameter] public TrainingPlanRecommendation? Recommendation { get; set; }
+
+    [Parameter] public EventCallback OnGenerateClicked { get; set; }
+    [Parameter] public EventCallback OnApplyClicked { get; set; }
+
+    [Parameter] public string ApiKey { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ApiKeyChanged { get; set; }
+    [Parameter] public bool IsClaudeConnected { get; set; }
+
+    [Parameter] public EventCallback OnConnectClaudeClicked { get; set; }
+    [Parameter] public EventCallback OnDisconnectClaudeClicked { get; set; }
+
+    [Parameter] public bool HasConfiguredClaudeKey { get; set; }
+    [Parameter] public EventCallback OnUseConfiguredKeyClicked { get; set; }
+
+    [Parameter] public string AnnualGoalText { get; set; } = string.Empty;
+    [Parameter] public string CompletedText { get; set; } = string.Empty;
+    [Parameter] public string RemainingText { get; set; } = string.Empty;
+    [Parameter] public string CurrentDateText { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnDiscardClicked { get; set; }
+    [Parameter] public Func<decimal, string> FormatDistance { get; set; } = _ => "";
+    [Parameter] public string? SuccessMessage { get; set; }
+
+    private async Task OnLocationInput(ChangeEventArgs e)
+    {
+        Location = e.Value?.ToString() ?? string.Empty;
+        await LocationChanged.InvokeAsync(Location);
+    }
+    private async Task OnApiKeyInput(ChangeEventArgs e)
+    {
+        ApiKey = e.Value?.ToString() ?? string.Empty;
+        await ApiKeyChanged.InvokeAsync(ApiKey);
+    }
+   
+}

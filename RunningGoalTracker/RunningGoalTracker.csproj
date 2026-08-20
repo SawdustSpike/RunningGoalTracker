@@ -17,4 +17,8 @@
     <Content Include="docs\images\Stretch Goals.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Anthropic" Version="12.41.0" />
+  </ItemGroup>
+
 </Project>

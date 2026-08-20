@@ -56,9 +56,22 @@ namespace RunningGoalTracker.Services
 
             while (true)
             {
-                var activities = await _httpClient
-                    .GetFromJsonAsync<List<StravaActivity>>(
-                        $"https://www.strava.com/api/v3/athlete/activities?page={page}&per_page=200");
+                var response = await _httpClient.GetAsync(
+                    $"https://www.strava.com/api/v3/athlete/activities?page={page}&per_page=200");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+
+                    Console.WriteLine("Strava activities request failed:");
+                    Console.WriteLine($"Status: {response.StatusCode}");
+                    Console.WriteLine(errorBody);
+
+                    return allActivities;
+                }
+
+                var activities =
+                    await response.Content.ReadFromJsonAsync<List<StravaActivity>>();
 
                 if (activities == null || activities.Count == 0)
                     break;

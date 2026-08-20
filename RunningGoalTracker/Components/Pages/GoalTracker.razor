@@ -149,7 +149,29 @@
                                      RunningProgressPercent="@GoalService.GetRunningProgressPercent(goal)"
                                      StatusClass="@PaceStatusClass" />
         </section>
-
+        <section class="dashboard-card dashboard-card-wide">
+            <AiAdaptivePlanPanel Location="@aiPlanLocation"
+                                 LocationChanged="@(value => aiPlanLocation = value)"
+                                 ApiKey="@anthropicApiKey"
+                                 ApiKeyChanged="@(value => anthropicApiKey = value)"
+                                 IsClaudeConnected="@IsClaudeConnected"
+                                 HasConfiguredClaudeKey="@HasConfiguredClaudeKey"
+                                 IsGenerating="@isGeneratingAiPlan"
+                                 ErrorMessage="@aiPlanError"
+                                 Recommendation="@aiRecommendation"
+                                 AnnualGoalText="@FormatDistance(goal.GoalMiles)"
+                                 CompletedText="@FormatDistance(GoalService.GetTotalMiles(goal))"
+                                 RemainingText="@FormatDistance(GoalService.GetMilesRemaining(goal))"
+                                 CurrentDateText="@DateTime.Today.ToString("MMM d, yyyy")"
+                                 FormatDistance="@FormatDistance"
+                                 OnUseConfiguredKeyClicked="@UseConfiguredClaudeKey"
+                                 OnConnectClaudeClicked="@ConnectClaude"
+                                 OnDisconnectClaudeClicked="@DisconnectClaude"
+                                 OnGenerateClicked="@GenerateAiPlan"
+                                 OnApplyClicked="@ApplyAiPlan"
+                                 OnDiscardClicked="@DiscardAiPlan"
+                                 SuccessMessage="@aiPlanSuccess" />
+        </section>
         <section class="dashboard-card dashboard-card-wide">
             <MonthlyProgressChart ProgressPoints="@GoalService.GetMonthlyProgressPoints(goal, monthlyAllocationSettings, monthlyRunTotals)"
                                   GoalMiles="@goal.GoalMiles"
@@ -175,7 +197,7 @@
     </main>
     <footer class="dashboard-footer">
         <span>StrideIQ v1.0 </span>
-        <span> Built with Blazor • .NET 9 • Strava API</span>
+        <span> Built with Blazor • Powered by Claude • .NET 9 • Strava API</span>
 
         <span>
             OAuth • Token Refresh • Local Persistence • Adaptive Goal Forecasting

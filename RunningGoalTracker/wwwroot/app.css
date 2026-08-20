@@ -477,10 +477,7 @@ button {
         transform: none;
     }
 
-    button:last-of-type {
-        background: linear-gradient(135deg, #64748b, #475569);
-        box-shadow: 0 10px 24px rgba(71, 85, 105, 0.18);
-    }
+
 
 /* ---------- Status ---------- */
 
@@ -1055,4 +1052,779 @@ body:has(.theme-dark) .app-brand strong {
     .dashboard-footer {
         flex-direction: column;
     }
+}
+/* ---------- Claude AI Adaptive Plan ---------- */
+
+.ai-plan {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.ai-plan-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    align-items: flex-start;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+    .ai-plan-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        letter-spacing: -0.04em;
+    }
+
+.ai-eyebrow {
+    margin: 0 0 0.35rem;
+    color: #7c3aed;
+    font-size: 0.75rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.claude-badge {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 0.55rem 0.8rem;
+    border-radius: 999px;
+    color: #6d28d9;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    font-size: 0.8rem;
+    font-weight: 900;
+}
+
+.ai-section {
+    padding: 1.35rem;
+    border-radius: 20px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.ai-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+    .ai-section-header > span:first-child {
+        color: #475569;
+        font-size: 0.76rem;
+        font-weight: 950;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+/* ---------- Claude Connection ---------- */
+
+.claude-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.65rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
+    .claude-status.connected {
+        background: #ecfdf5;
+        color: #15803d;
+    }
+
+.claude-connect-options {
+    display: grid;
+    gap: 1rem;
+}
+
+.configured-key-option,
+.connected-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 16px;
+    background: white;
+    border: 1px solid #e2e8f0;
+}
+
+    .configured-key-option strong,
+    .connected-summary strong {
+        display: block;
+        margin-bottom: 0.2rem;
+    }
+
+    .configured-key-option small,
+    .connected-summary small,
+    .byok-option small,
+    .location-field small {
+        display: block;
+        color: #64748b;
+        font-weight: 650;
+        line-height: 1.4;
+    }
+
+.connection-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+
+    .connection-divider::before,
+    .connection-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #e2e8f0;
+    }
+
+.byok-option {
+    display: grid;
+    gap: 0.5rem;
+}
+
+    .byok-option label,
+    .location-field label {
+        color: #334155;
+        font-weight: 850;
+    }
+
+.api-key-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+    .api-key-row input,
+    .location-field input {
+        width: 100%;
+        padding: 0.75rem 0.85rem;
+        border-radius: 12px;
+        border: 1px solid #cbd5e1;
+        background: white;
+        color: #0f172a;
+        font-size: 1rem;
+    }
+
+        .api-key-row input:focus,
+        .location-field input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+        }
+
+.secondary-button {
+    background: transparent;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    box-shadow: none;
+}
+
+    .secondary-button:hover {
+        background: #f1f5f9;
+    }
+
+/* ---------- Plan Generator ---------- */
+
+.plan-generator {
+    display: grid;
+    gap: 1rem;
+}
+
+.location-field {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.generate-plan-button {
+    justify-self: start;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    box-shadow: 0 10px 24px rgba(124, 58, 237, 0.24);
+}
+
+    .generate-plan-button:hover {
+        transform: translateY(-1px);
+    }
+
+/* ---------- Dark Mode ---------- */
+
+.theme-dark .ai-plan-header {
+    border-bottom-color: rgba(148, 163, 184, 0.2);
+}
+
+.theme-dark .ai-eyebrow {
+    color: #c4b5fd;
+}
+
+.theme-dark .claude-badge {
+    color: #ddd6fe;
+    background: rgba(109, 40, 217, 0.18);
+    border-color: rgba(196, 181, 253, 0.28);
+}
+
+.theme-dark .ai-section {
+    background: rgba(30, 41, 59, 0.82);
+    border-color: rgba(148, 163, 184, 0.24);
+}
+
+.theme-dark .ai-section-header > span:first-child {
+    color: #cbd5e1;
+}
+
+.theme-dark .claude-status {
+    background: rgba(51, 65, 85, 0.9);
+    color: #cbd5e1;
+}
+
+    .theme-dark .claude-status.connected {
+        background: rgba(22, 163, 74, 0.14);
+        color: #86efac;
+    }
+
+.theme-dark .configured-key-option,
+.theme-dark .connected-summary {
+    background: rgba(15, 23, 42, 0.82);
+    border-color: rgba(148, 163, 184, 0.22);
+}
+
+    .theme-dark .configured-key-option small,
+    .theme-dark .connected-summary small,
+    .theme-dark .byok-option small,
+    .theme-dark .location-field small {
+        color: #94a3b8;
+    }
+
+.theme-dark .connection-divider {
+    color: #64748b;
+}
+
+    .theme-dark .connection-divider::before,
+    .theme-dark .connection-divider::after {
+        background: #334155;
+    }
+
+.theme-dark .byok-option label,
+.theme-dark .location-field label {
+    color: #f8fafc;
+}
+
+.theme-dark .api-key-row input,
+.theme-dark .location-field input {
+    background: #020617;
+    color: #f8fafc;
+    border-color: #475569;
+}
+
+    .theme-dark .api-key-row input::placeholder,
+    .theme-dark .location-field input::placeholder {
+        color: #64748b;
+    }
+
+.theme-dark .secondary-button {
+    color: #cbd5e1;
+    border-color: #475569;
+}
+
+    .theme-dark .secondary-button:hover {
+        background: rgba(51, 65, 85, 0.7);
+    }
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 800px) {
+    .ai-plan-header {
+        flex-direction: column;
+    }
+
+    .claude-badge {
+        align-self: flex-start;
+    }
+
+    .configured-key-option,
+    .connected-summary {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .api-key-row {
+        grid-template-columns: 1fr;
+    }
+
+        .api-key-row button,
+        .generate-plan-button {
+            width: 100%;
+        }
+}
+/* ---------- AI Planning Context ---------- */
+
+.ai-context-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.ai-context-item {
+    min-height: 88px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0.9rem 1rem;
+    border-radius: 16px;
+    background: white;
+    border: 1px solid #e2e8f0;
+}
+
+
+    .ai-context-item span {
+        display: block;
+        margin-bottom: 0.3rem;
+        color: #64748b;
+        font-size: 0.7rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+    }
+
+    .ai-context-item strong {
+        display: block;
+        color: #0f172a;
+        font-size: 1.05rem;
+        letter-spacing: -0.02em;
+    }
+
+/* Dark Mode */
+
+.theme-dark .ai-context-item {
+    background: rgba(15, 23, 42, 0.82);
+    border-color: rgba(148, 163, 184, 0.22);
+}
+
+    .theme-dark .ai-context-item span {
+        color: #94a3b8;
+    }
+
+    .theme-dark .ai-context-item strong {
+        color: #f8fafc;
+    }
+
+/* Responsive */
+
+@media (max-width: 800px) {
+    .ai-context-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .ai-context-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.generate-plan-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    justify-self: start;
+    min-height: 46px;
+    padding-inline: 1.25rem;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    box-shadow: 0 10px 24px rgba(124, 58, 237, 0.24);
+}
+
+.ai-spinner {
+    width: 15px;
+    height: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: ai-spin 0.7s linear infinite;
+}
+
+@keyframes ai-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+.ai-message {
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+    border: 1px solid;
+}
+
+    .ai-message strong,
+    .ai-message span {
+        display: block;
+    }
+
+    .ai-message strong {
+        margin-bottom: 0.2rem;
+    }
+
+.ai-message-error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.theme-dark .ai-message-error {
+    background: rgba(127, 29, 29, 0.2);
+    border-color: rgba(248, 113, 113, 0.35);
+    color: #fecaca;
+}
+/* ---------- AI Recommendation ---------- */
+
+.ai-recommendation {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    padding: 1.4rem;
+    border-radius: 20px;
+    background: linear-gradient( 135deg, rgba(245, 243, 255, 0.8), rgba(239, 246, 255, 0.8) );
+    border: 1px solid #ddd6fe;
+}
+
+.recommendation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+    .recommendation-header h3 {
+        margin: 0;
+        font-size: 1.3rem;
+        letter-spacing: -0.03em;
+    }
+
+.recommendation-ready {
+    padding: 0.4rem 0.65rem;
+    border-radius: 999px;
+    background: #ecfdf5;
+    color: #15803d;
+    font-size: 0.75rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.recommendation-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.recommendation-region,
+.recommendation-remaining {
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+    .recommendation-region span,
+    .recommendation-remaining span {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: #64748b;
+        font-size: 0.7rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+    }
+
+    .recommendation-region strong,
+    .recommendation-remaining strong {
+        color: #0f172a;
+    }
+
+.recommendation-reasoning {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.8rem;
+    padding: 1rem;
+    border-radius: 16px;
+    background: rgba(124, 58, 237, 0.07);
+    border: 1px solid rgba(124, 58, 237, 0.15);
+}
+
+.reasoning-icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: #7c3aed;
+    color: white;
+    font-weight: 900;
+}
+
+.recommendation-reasoning span {
+    color: #6d28d9;
+    font-size: 0.75rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.recommendation-reasoning p {
+    margin: 0.3rem 0 0;
+    color: #475569;
+    line-height: 1.55;
+}
+
+/* ---------- Month Rows ---------- */
+
+.recommendation-months {
+    overflow: hidden;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    background: white;
+}
+
+.recommendation-months-header,
+.recommendation-month-row {
+    display: grid;
+    grid-template-columns: 1fr 140px 1fr;
+    gap: 1rem;
+    align-items: center;
+    min-height: 58px;
+    padding: 0.8rem 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.recommendation-months-header {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+
+.recommendation-month-row {
+    border-top: 1px solid #e2e8f0;
+}
+
+.recommendation-month-name {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.current-month-pill {
+    padding: 0.25rem 0.45rem;
+    border-radius: 999px;
+    background: #ede9fe;
+    color: #6d28d9;
+    font-size: 0.65rem;
+    font-weight: 900;
+}
+
+.recommended-miles {
+    color: #2563eb;
+}
+
+.recommendation-percent {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+    .recommendation-percent span {
+        color: #64748b;
+        font-size: 0.78rem;
+        font-weight: 800;
+    }
+
+.recommendation-bar {
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e2e8f0;
+}
+
+.recommendation-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+}
+
+/* ---------- Total / Actions ---------- */
+
+.recommendation-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.72);
+}
+
+    .recommendation-total span {
+        color: #64748b;
+        font-weight: 800;
+    }
+
+    .recommendation-total strong {
+        font-size: 1.15rem;
+    }
+
+.recommendation-actions {
+    display: flex;
+    gap: 0.65rem;
+    margin-top: 0.25rem;
+}
+
+.apply-ai-plan-button {
+    min-width: 170px;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    box-shadow: 0 10px 24px rgba(124, 58, 237, 0.24);
+}
+
+.recommendation-disclaimer {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+/* ---------- AI Recommendation: Dark Mode ---------- */
+
+.theme-dark .ai-recommendation {
+    background: linear-gradient( 135deg, rgba(76, 29, 149, 0.12), rgba(30, 64, 175, 0.10) );
+    border-color: rgba(167, 139, 250, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.theme-dark .recommendation-ready {
+    background: rgba(22, 163, 74, 0.15);
+    color: #86efac;
+}
+
+.theme-dark .recommendation-region,
+.theme-dark .recommendation-remaining,
+.theme-dark .recommendation-total {
+    background: rgba(15, 23, 42, 0.72);
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
+    .theme-dark .recommendation-region span,
+    .theme-dark .recommendation-remaining span,
+    .theme-dark .recommendation-total span,
+    .theme-dark .recommendation-percent span,
+    .theme-dark .recommendation-disclaimer {
+        color: #94a3b8;
+    }
+
+    .theme-dark .recommendation-region strong,
+    .theme-dark .recommendation-remaining strong,
+    .theme-dark .recommendation-total strong {
+        color: #f8fafc;
+    }
+
+.theme-dark .recommendation-reasoning {
+    background: rgba(124, 58, 237, 0.12);
+    border-color: rgba(167, 139, 250, 0.2);
+}
+
+    .theme-dark .recommendation-reasoning span {
+        color: #c4b5fd;
+    }
+
+    .theme-dark .recommendation-reasoning p {
+        color: #cbd5e1;
+    }
+
+.theme-dark .recommendation-months {
+    background: rgba(15, 23, 42, 0.72);
+    border-color: #334155;
+}
+
+.theme-dark .recommendation-months-header {
+    background: rgba(30, 41, 59, 0.9);
+    color: #94a3b8;
+}
+
+.theme-dark .recommendation-month-row {
+    border-color: #334155;
+}
+
+.theme-dark .current-month-pill {
+    background: rgba(124, 58, 237, 0.2);
+    color: #c4b5fd;
+}
+
+.theme-dark .recommended-miles {
+    color: #60a5fa;
+}
+
+.theme-dark .recommendation-bar {
+    background: #334155;
+}
+@media (max-width: 700px) {
+    .recommendation-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .recommendation-months-header {
+        display: none;
+    }
+
+    .recommendation-month-row {
+        grid-template-columns: 1fr;
+        gap: 0.45rem;
+    }
+
+    .recommendation-percent {
+        grid-template-columns: 48px 1fr;
+    }
+
+    .recommendation-actions .secondary-button {
+        background: transparent;
+        box-shadow: none;
+    }
+
+        .recommendation-actions button {
+            width: 100%;
+        }
+}
+.ai-message-success {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #ecfdf5;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+
+.ai-success-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #16a34a;
+    color: white;
+    font-weight: 900;
+}
+
+.theme-dark .ai-message-success {
+    background: rgba(22, 163, 74, 0.12);
+    border-color: rgba(74, 222, 128, 0.3);
+    color: #bbf7d0;
 }

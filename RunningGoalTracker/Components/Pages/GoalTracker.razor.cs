@@ -3,6 +3,8 @@ using RunningGoalTracker.Interfaces;
 using RunningGoalTracker.Models;
 using RunningGoalTracker.Models.enums;
 using RunningGoalTracker.Services;
+using Microsoft.Extensions.Options;
+using System.Runtime;
 
 namespace RunningGoalTracker.Components.Pages
 {
@@ -15,18 +17,25 @@ namespace RunningGoalTracker.Components.Pages
         [Inject] private LocalStorageService StorageService { get; set; } = default!;
         [Inject] private StravaAuthService StravaAuthService { get; set; } = default!;
         [Inject] private NavigationManager Navigation { get; set; } = default!;
-
+        [Inject] private ITrainingPlanRecommendationService TrainingPlanRecommendationService { get; set; } = default!;
+        [Inject] private UserClaudeCredentials ClaudeCredentials { get; set; } = default!;
+        [Inject] private IOptions<AnthropicSettings> AnthropicOptions { get; set; } = default!;
         private bool hasLoadedSettings;
         private bool shouldSyncStravaAfterRender;
         private bool hasSyncedStravaThisVisit;
         private bool isLoadingStrava;
-
+        private string anthropicApiKey = string.Empty;
+        private bool IsClaudeConnected => ClaudeCredentials.HasApiKey;
         private DateTime? lastStravaSync;
-
+        private string aiPlanLocation = string.Empty;
+        private bool isGeneratingAiPlan;
+        private string? aiPlanError;
+        private TrainingPlanRecommendation? aiRecommendation;
         private AppTheme appTheme = AppTheme.Light;
+        private string? aiPlanSuccess;
         private DistanceUnit distanceUnit = DistanceUnit.Miles;
         private MonthlyAllocationMode allocationMode = MonthlyAllocationMode.RedistributeRemaining;
-
+        private bool HasConfiguredClaudeKey => !string.IsNullOrWhiteSpace(AnthropicOptions.Value.ApiKey);
         private RunningGoal goal = new()
         {
             GoalMiles = 1000,
@@ -35,7 +44,75 @@ namespace RunningGoalTracker.Components.Pages
         };
 
         private List<MonthlyRunTotal> monthlyRunTotals = new();
+        private async Task GenerateAiPlan()
+        {
+            aiPlanSuccess = null;
+            aiPlanError = null;
+            aiRecommendation = null;
 
+            if (string.IsNullOrWhiteSpace(aiPlanLocation))
+            {
+                aiPlanError = "Enter a location before generating a plan.";
+                return;
+            }
+
+            isGeneratingAiPlan = true;
+
+            try
+            {
+                var request = new TrainingPlanRequest
+                {
+                    Location = aiPlanLocation,
+                    AnnualGoalMiles = goal.GoalMiles,
+                    CurrentMiles = GoalService.GetTotalMiles(goal),
+                    CurrentDate = DateTime.Today
+                };
+
+                aiRecommendation =
+                    await TrainingPlanRecommendationService.GeneratePlanAsync(request);
+            }
+            catch (Exception)
+            {
+                aiPlanError =
+                    "Claude couldn't generate a valid plan right now. Please try again.";
+            }
+            finally
+            {
+                isGeneratingAiPlan = false;
+            }
+        }
+        private async Task ApplyAiPlan()
+        {
+            if (aiRecommendation == null)
+                return;
+
+            monthlyAllocationSettings = aiRecommendation.Allocations
+                .Select(x => new MonthlyAllocationSetting
+                {
+                    MonthNumber = x.MonthNumber,
+                    Percent = x.PercentOfRemaining
+                })
+                .ToList();
+            await SaveSettings();
+            aiRecommendation = null;
+            aiPlanError = null;
+            aiPlanSuccess = "AI plan applied successfully.";
+        }
+        private void UseConfiguredClaudeKey()
+        {
+            var configuredKey = AnthropicOptions.Value.ApiKey;
+
+            if (string.IsNullOrWhiteSpace(configuredKey))
+            {
+                aiPlanError = "No configured Anthropic API key is available.";
+                return;
+            }
+
+            ClaudeCredentials.SetApiKey(configuredKey);
+
+            aiPlanError = null;
+            anthropicApiKey = string.Empty;
+        }
         private List<MonthlyAllocationSetting> monthlyAllocationSettings =
         [
             new() { MonthNumber = 1, Percent = 5 },
@@ -389,6 +466,34 @@ namespace RunningGoalTracker.Components.Pages
                 StravaAuthService.GetAuthorizationUrl(),
                 forceLoad: true);
         }
+        private async Task ConnectClaude()
+        {
+            aiPlanError = null;
+
+            if (string.IsNullOrWhiteSpace(anthropicApiKey))
+            {
+                aiPlanError = "Enter an Anthropic API key.";
+                return;
+            }
+
+            var isValid =
+                await TrainingPlanRecommendationService
+                    .ValidateApiKeyAsync(anthropicApiKey);
+
+            if (!isValid)
+            {
+                aiPlanError = "That Anthropic API key could not be validated.";
+                return;
+            }
+
+            ClaudeCredentials.SetApiKey(anthropicApiKey);
+            anthropicApiKey = string.Empty;
+        }
+        private void DisconnectClaude()
+        {
+            ClaudeCredentials.Clear();
+            anthropicApiKey = string.Empty;
+        }
         private async Task ToggleTheme()
         {
             appTheme = IsDarkMode
@@ -397,5 +502,12 @@ namespace RunningGoalTracker.Components.Pages
 
             await SaveSettings();
         }
+        private void DiscardAiPlan()
+        {
+            aiRecommendation = null;
+            aiPlanError = null;
+            aiPlanSuccess = null;
+        }
+
     }
 }
